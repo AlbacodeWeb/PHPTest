@@ -23,7 +23,7 @@ Hors, la loi et les coutumes ont changé et l'application est devenue obsolète.
 Revoyez donc l'application pour prendre en compte ces nouvelles règles sociétales :
  - mariage possible entre deux personnes de même sexe
  - possibilité d'avoir des enfants avant le mariage
- - possibilité à un coupe de femmes d'avoir un enfant
+ - possibilité pour un couple de femmes d'avoir un enfant
  
 Les tests unitaires doivent continuer de fonctionner, afin d'assurer le bon fonctionnement de la famille.
 
