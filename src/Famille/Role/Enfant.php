@@ -2,25 +2,24 @@
 
 namespace Albacode\Famille\Role;
 
-use Albacode\Famille\Membre\Femme;
-use Albacode\Famille\Membre\Homme;
+use Albacode\Famille\Membre\MembreInterface;
 
 class Enfant implements RoleInterface
 {
 
     /**
-     * @var Femme
+     * @var MembreInterface
      */
-    protected $mere;
+    protected $parent1;
 
     /**
-     * @var Homme
+     * @var MembreInterface
      */
-    protected $pere;
+    protected $parent2;
 
-    public function __construct(Femme $mere, Homme $pere)
+    public function __construct(MembreInterface $parent1, MembreInterface $parent2)
     {
-        $this->mere = $mere;
-        $this->pere = $pere;
+        $this->parent1 = $parent1;
+        $this->parent2 = $parent2;
     }
 }

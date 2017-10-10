@@ -7,6 +7,7 @@ use Albacode\Famille\Membre\Femme;
 use Albacode\Famille\Membre\Homme;
 use Albacode\Famille\Membre\MembreInterface;
 use PHPUnit\Framework\TestCase;
+use Albacode\Famille\Exception\EnfantCoupleHommeException;
 
 class FamilleTest extends TestCase
 {
@@ -36,11 +37,144 @@ class FamilleTest extends TestCase
             ->addMariage($epouse, $epoux)
         ;
         $this->assertEquals($expectedMembreCount, $famille->getMembres()->count());
-        $this->assertEquals($epouse->getNom(), $famille->getEpouses()->first()->getNom());
-        $this->assertEquals($epoux->getNom(), $famille->getEpoux()->first()->getNom());
+        $this->assertEquals($epouse->getNom(), $famille->getPartenaires()->first()->getNom());
+        $this->assertEquals($epoux->getNom(), $famille->getPartenaires()->last()->getNom());
     }
 
-    public function addNaissanceDataProvider()
+    public function addMariageHommeDataProvider()
+    {
+      return [[
+          new Homme('Homme 1'),
+          new Homme('Homme 2'),
+          2
+        ]];
+    }
+    /**
+     * @dataProvider addMariageHommeDataProvider
+     * @param Homme $homme1
+     * @param Homme $homme2
+     * @param $expectedMembreCount
+     */
+    public function testAddMariageHomme(
+        Homme $homme1,
+        Homme $homme2,
+        $expectedMembreCount
+    ) {
+      $famille = (new Famille())
+          ->addMembre($homme1)
+          ->addMariage($homme1,$homme2)
+      ;
+      $this->assertEquals($expectedMembreCount, $famille->getMembres()->count());
+      $this->assertEquals($homme1->getNom(), $famille->getPartenaires()->first()->getNom());
+      $this->assertEquals($homme2->getNom(), $famille->getPartenaires()->last()->getNom());
+
+
+    }
+
+    public function addMariageFemmeDataProvider()
+    {
+      return [[
+          new Femme('Femme 1'),
+          new Femme('Femme 2'),
+          2
+        ]];
+    }
+    /**
+     * @dataProvider addMariageFemmeDataProvider
+     * @param Femme $femme1
+     * @param Femme $femme2
+     * @param $expectedMembreCount
+     */
+    public function testAddMariageFemme(
+        Femme $femme1,
+        Femme $femme2,
+        $expectedMembreCount
+    ) {
+      $famille = (new Famille())
+          ->addMembre($femme1)
+          ->addMariage($femme1,$femme2)
+      ;
+      $this->assertEquals($expectedMembreCount, $famille->getMembres()->count());
+      $this->assertEquals($femme1->getNom(), $famille->getPartenaires()->first()->getNom());
+      $this->assertEquals($femme2->getNom(), $famille->getPartenaires()->last()->getNom());
+
+
+    }
+
+
+    public function addNaissanceFemmesDataProvider()
+    {
+        return [[
+            new Femme('Mère 1'),
+            new Femme('Mère 2'),
+            new Homme('Enfant'),
+            3
+        ]];
+    }
+
+    /**
+     * @dataProvider addNaissanceFemmesDataProvider
+     * @param Femme $mere1
+     * @param Femme $mere2
+     * @param MembreInterface $enfant
+     * @param $expectedMembreCount
+     */
+    public function testAddNaissanceFemmes(
+        Femme $mere1,
+        Femme $mere2,
+        MembreInterface $enfant,
+        $expectedMembreCount
+    ) {
+
+        $famille = (new Famille())
+            ->addMembre($mere1)
+            ->addMembre($mere2)
+            ->addNaissance($mere1, $mere2, $enfant);
+
+        $this->assertEquals($expectedMembreCount, $famille->getMembres()->count());
+        $this->assertEquals($mere1->getNom(), $famille->getParentFamille()->first()->getNom());
+        $this->assertEquals($mere2->getNom(), $famille->getParentFamille()->last()->getNom());
+        $this->assertEquals($enfant->getNom(), $famille->getEnfants()->first()->getNom());
+    }
+
+    public function addNaissanceHommesDataProvider()
+    {
+        return [[
+            new Homme('Père 1'),
+            new Homme('Père 2'),
+            new Homme('Enfant'),
+            3
+        ]];
+    }
+
+    /**
+     * @dataProvider addNaissanceHommesDataProvider
+     * @expectedException \Albacode\Famille\Exception\EnfantCoupleHommeException
+     * @param Homme $pere1
+     * @param Homme $pere2
+     * @param MembreInterface $enfant
+     * @param $expectedMembreCount
+     * @throws \Albacode\Famille\Exception\EnfantCoupleHommeException
+     */
+    public function testAddNaissanceHommes(
+        Homme $pere1,
+        Homme $pere2,
+        MembreInterface $enfant,
+        $expectedMembreCount
+    ) {
+
+        $famille = (new Famille())
+            ->addMembre($pere1)
+            ->addMembre($pere2)
+            ->addNaissance($pere1, $pere2, $enfant);
+
+        $this->assertEquals($expectedMembreCount, $famille->getMembres()->count());
+        $this->assertEquals($pere1->getNom(), $famille->getParentFamille()->first()->getNom());
+        $this->assertEquals($pere2->getNom(), $famille->getParentFamille()->last()->getNom());
+        $this->assertEquals($enfant->getNom(), $famille->getEnfants()->first()->getNom());
+    }
+
+    public function addNaissanceSansMariageDataProvider()
     {
         return [[
             new Femme('Mère'),
@@ -51,14 +185,13 @@ class FamilleTest extends TestCase
     }
 
     /**
-     * @dataProvider addNaissanceDataProvider
+     * @dataProvider addNaissanceSansMariageDataProvider
      * @param Femme $mere
      * @param Homme $pere
      * @param MembreInterface $enfant
      * @param $expectedMembreCount
-     * @throws \Albacode\Famille\Exception\EnfantHorsMariageException
      */
-    public function testAddNaissance(
+    public function testAddNaissanceSansMariage(
         Femme $mere,
         Homme $pere,
         MembreInterface $enfant,
@@ -67,34 +200,14 @@ class FamilleTest extends TestCase
 
         $famille = (new Famille())
             ->addMembre($mere)
-            ->addMariage($mere, $pere)
+            ->addMembre($pere)
             ->addNaissance($mere, $pere, $enfant);
 
         $this->assertEquals($expectedMembreCount, $famille->getMembres()->count());
-        $this->assertEquals($mere->getNom(), $famille->getMeres()->first()->getNom());
-        $this->assertEquals($pere->getNom(), $famille->getPeres()->first()->getNom());
+        $this->assertEquals($mere->getNom(), $famille->getParentFamille()->first()->getNom());
+        $this->assertEquals($pere->getNom(), $famille->getParentFamille()->last()->getNom());
         $this->assertEquals($enfant->getNom(), $famille->getEnfants()->first()->getNom());
     }
-
-    /**
-     * @expectedException \Albacode\Famille\Exception\EnfantHorsMariageException
-     */
-    public function testAddNaissanceHorsMariageThrowsException()
-    {
-
-        $famille = new Famille();
-
-        $pere = new Homme('Père A');
-        $mere = new Femme('Mère A');
-
-        $famille->addMembre($pere)
-            ->addMembre($mere);
-
-        $enfant = new Homme('Enfant A');
-
-        $famille->addNaissance($mere, $pere, $enfant);
-    }
-
     public function getStatsDataProvider()
     {
         $grandPereA = new Homme('Grand-Père A');
@@ -109,10 +222,8 @@ class FamilleTest extends TestCase
                 new Famille(),
                 [
                     'nbMembres' => 0,
-                    'nbMeres' => 0,
-                    'nbPeres' => 0,
-                    'nbEpouses' => 0,
-                    'nbEpoux' => 0,
+                    'nbParents' => 0,
+                    'nbPartenaires' => 0,
                     'nbEnfants' => 0,
                 ],
             ],
@@ -125,10 +236,8 @@ class FamilleTest extends TestCase
                     ->addNaissance($mereA, $pereA, $enfantA),
                 [
                     'nbMembres' => 5,
-                    'nbMeres' => 2,
-                    'nbPeres' => 2,
-                    'nbEpouses' => 2,
-                    'nbEpoux' => 2,
+                    'nbParents' => 4,
+                    'nbPartenaires' => 4,
                     'nbEnfants' => 2,
                 ],
             ],
@@ -142,10 +251,8 @@ class FamilleTest extends TestCase
                     ->addNaissance($grandMereA, $grandPereA, $enfantB),
                 [
                     'nbMembres' => 6,
-                    'nbMeres' => 2,
-                    'nbPeres' => 2,
-                    'nbEpouses' => 2,
-                    'nbEpoux' => 2,
+                    'nbParents' => 4,
+                    'nbPartenaires' => 4,
                     'nbEnfants' => 3,
                 ],
             ],
