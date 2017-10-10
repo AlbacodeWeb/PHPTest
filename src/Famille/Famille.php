@@ -9,10 +9,6 @@ use Albacode\Famille\Membre\Homme;
 use Albacode\Famille\Membre\MembreCollection;
 use Albacode\Famille\Membre\MembreInterface;
 use Albacode\Famille\Role\Enfant;
-use Albacode\Famille\Role\Epouse;
-use Albacode\Famille\Role\Epoux;
-use Albacode\Famille\Role\Mere;
-use Albacode\Famille\Role\Pere;
 use Albacode\Famille\Role\ParentFamille;
 use Albacode\Famille\Role\Partenaire;
 
