@@ -2,22 +2,22 @@
 
 namespace Albacode\Famille\Role;
 
-use Albacode\Famille\Membre\Homme;
+use Albacode\Famille\Membre\AbstractMembre;
 
 class Epouse implements RoleInterface
 {
 
     /**
-     * @var Homme
+     * @var Conjoint
      */
-    protected $epoux;
+    protected $conjoint;
 
     /**
      * Enfant constructor.
      * @param Homme $epoux
      */
-    public function __construct(Homme $epoux)
+    public function __construct(AbstractMembre $conjoint)
     {
-        $this->epoux = $epoux;
+        $this->conjoint = $conjoint;
     }
 }

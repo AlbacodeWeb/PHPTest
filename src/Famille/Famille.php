@@ -2,7 +2,6 @@
 
 namespace Albacode\Famille;
 
-
 use Albacode\Famille\Exception\EnfantHorsMariageException;
 use Albacode\Famille\Membre\Femme;
 use Albacode\Famille\Membre\Homme;
@@ -51,21 +50,73 @@ class Famille
     }
 
     /**
+     * Ajoute un mariage entre femme
+     * @param Femme $femme
+     * @param Femme $mariee
+     * @return Famille
+     */
+    public function addMariageFemme(Femme $femme, Femme $mariee)
+    {
+        $this->addMembre($femme);
+        $femme->addRole(new Epouse($mariee));
+        $this->addMembre($mariee);
+        $mariee->addRole(new Epouse($femme));
+        return $this;
+    }
+    
+     /**
+     * Ajoute un mariage entre homme
+     * @param Homme $homme
+     * @param Homme $mari
+     * @return Famille
+     */
+    public function addMariageHomme(Homme $homme, Homme $mari)
+    {
+        $this->addMembre($homme);
+        $homme->addRole(new Epoux($mari));
+        $this->addMembre($mari);
+        $mari->addRole(new Epoux($homme));
+        return $this;
+    }
+    
+    /**
      * @param Femme $mere
      * @param Homme $pere
      * @param MembreInterface $enfant
      * @return $this
      * @throws EnfantHorsMariageException
      */
-    public function addNaissance(Femme $mere, Homme $pere, MembreInterface $enfant)
+    public function addNaissance(MembreInterface $parentUn, MembreInterface $parentDeux, MembreInterface $enfant)
     {
-        if (!$mere->hasRole(Epouse::class) || !$pere->hasRole(Epoux::class)) {
-            throw new EnfantHorsMariageException('Les parents doivent être mariés pour pouvoir avoir un enfant !');
+        
+        if(    get_class($parentUn) == (Homme::class) 
+            && get_class($parentDeux) == (Homme::class)) 
+        {
+            throw new Exception\EnfantCoupleHommeMariageException();
         }
+                
         $this->addMembre($enfant);
-        $mere->addRole(new Mere($enfant));
-        $pere->addRole(new Pere($enfant));
-        $enfant->addRole(new Enfant($mere, $pere));
+        
+        if(get_class($parentUn)  == Femme::Class)
+        {    
+            $parentUn->addRole(new Mere($enfant));
+        }
+        else
+        {
+             $parentUn->addRole(new Pere($enfant));
+        }
+        
+        
+        if(get_class($parentDeux)  == Femme::Class)
+        {    
+            $parentDeux->addRole(new Mere($enfant));
+        }
+        else
+        {
+             $parentDeux->addRole(new Pere($enfant));
+        }
+        
+        $enfant->addRole(new Enfant($parentUn, $parentDeux));
         return $this;
     }
 
