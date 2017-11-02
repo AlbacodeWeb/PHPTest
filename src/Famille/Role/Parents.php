@@ -4,8 +4,9 @@ namespace Albacode\Famille\Role;
 
 use Albacode\Famille\Membre\MembreInterface;
 
-class Pere implements RoleInterface
+class Parents implements RoleInterface
 {
+
     /**
      * @var MembreInterface
      */
