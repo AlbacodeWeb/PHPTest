@@ -3,16 +3,15 @@
 namespace Albacode\Famille;
 
 
-use Albacode\Famille\Exception\EnfantHorsMariageException;
+use Albacode\Famille\Exception\EnfantCoupleHommeException;
 use Albacode\Famille\Membre\Femme;
 use Albacode\Famille\Membre\Homme;
 use Albacode\Famille\Membre\MembreCollection;
 use Albacode\Famille\Membre\MembreInterface;
 use Albacode\Famille\Role\Enfant;
-use Albacode\Famille\Role\Epouse;
-use Albacode\Famille\Role\Epoux;
-use Albacode\Famille\Role\Mere;
-use Albacode\Famille\Role\Pere;
+use Albacode\Famille\Role\Conjoint_e;
+use Albacode\Famille\Role\Parents;
+
 
 class Famille
 {
@@ -37,35 +36,35 @@ class Famille
     }
 
     /**
-     * @param Femme $femme
-     * @param Homme $homme
+     * @param MembreInterface $conjoint_e1
+     * @param MembreInterface $conjoint_e2
      * @return $this
      */
-    public function addMariage(Femme $femme, Homme $homme)
+    public function addMariage(MembreInterface $conjoint_e1, MembreInterface $conjoint_e2)
     {
-        $this->addMembre($femme);
-        $femme->addRole(new Epouse($homme));
-        $this->addMembre($homme);
-        $homme->addRole(new Epoux($femme));
+        $this->addMembre($conjoint_e1);
+        $conjoint_e1->addRole(new Conjoint_e($conjoint_e2));
+        $this->addMembre($conjoint_e2);
+        $conjoint_e2->addRole(new Conjoint_e($conjoint_e1));
         return $this;
     }
 
     /**
-     * @param Femme $mere
-     * @param Homme $pere
+     * @param MembreInterface $parent_1
+     * @param MembreInterface $parent_2
      * @param MembreInterface $enfant
      * @return $this
      * @throws EnfantHorsMariageException
      */
-    public function addNaissance(Femme $mere, Homme $pere, MembreInterface $enfant)
+    public function addNaissance(MembreInterface $parent_1, MembreInterface $parent_2, MembreInterface $enfant)
     {
-        if (!$mere->hasRole(Epouse::class) || !$pere->hasRole(Epoux::class)) {
-            throw new EnfantHorsMariageException('Les parents doivent être mariés pour pouvoir avoir un enfant !');
+        if ($parent_1 instanceof Homme && $parent_2 instanceof Homme) {
+          throw new EnfantCoupleHommeException('Les couples d\'hommes ne peuvent pas avoir d\'enfant. (et les adoptions ?)') ;
         }
         $this->addMembre($enfant);
-        $mere->addRole(new Mere($enfant));
-        $pere->addRole(new Pere($enfant));
-        $enfant->addRole(new Enfant($mere, $pere));
+        $parent_1->addRole(new Parents($enfant));
+        $parent_2->addRole(new Parents($enfant));
+        $enfant->addRole(new Enfant($parent_1, $parent_2));
         return $this;
     }
 
@@ -76,39 +75,20 @@ class Famille
     {
         return $this->membres;
     }
-
     /**
-     * @return MembreCollection
-     */
-    public function getMeres()
+    * @return MembreCollection
+    */
+    public function getParents()
     {
-        return $this->getMembresByRoleClass(Mere::class);
+      return $this->getMembresByRoleClass(Parents::class);
     }
-
     /**
-     * @return MembreCollection
-     */
-    public function getPeres()
+    * @return MembreCollection
+    */
+    public function getConjoint_es()
     {
-        return $this->getMembresByRoleClass(Pere::class);
+      return $this->getMembresByRoleClass(Conjoint_e::class);
     }
-
-    /**
-     * @return MembreCollection
-     */
-    public function getEpouses()
-    {
-        return $this->getMembresByRoleClass(Epouse::class);
-    }
-
-    /**
-     * @return MembreCollection
-     */
-    public function getEpoux()
-    {
-        return $this->getMembresByRoleClass(Epoux::class);
-    }
-
     /**
      * @return MembreCollection
      */
@@ -124,10 +104,8 @@ class Famille
     {
         return [
             'nbMembres' => $this->getMembres()->count(),
-            'nbMeres' => $this->getMeres()->count(),
-            'nbPeres' => $this->getPeres()->count(),
-            'nbEpouses' => $this->getEpouses()->count(),
-            'nbEpoux' => $this->getEpoux()->count(),
+            'nbParents' => $this->getParents()->count(),
+            'nbConjoint_es' => $this->getConjoint_es()->count(),
             'nbEnfants' => $this->getEnfants()->count(),
         ];
     }
