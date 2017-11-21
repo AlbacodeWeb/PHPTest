@@ -9,16 +9,16 @@ class Enfant implements RoleInterface
 {
 
     /**
-     * @var Femme
+     * @var Femme|Homme
      */
     protected $mere;
 
     /**
-     * @var Homme
+     * @var Homme|Femme
      */
     protected $pere;
 
-    public function __construct(Femme $mere, Homme $pere)
+    public function __construct($mere, $pere)
     {
         $this->mere = $mere;
         $this->pere = $pere;

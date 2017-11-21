@@ -3,7 +3,9 @@
 namespace Albacode\Famille;
 
 
+use Albacode\Famille\Exception\DeuxHommesPasDenfantsException;
 use Albacode\Famille\Exception\EnfantHorsMariageException;
+use Albacode\Famille\Membre\AbstractMembre;
 use Albacode\Famille\Membre\Femme;
 use Albacode\Famille\Membre\Homme;
 use Albacode\Famille\Membre\MembreCollection;
@@ -37,35 +39,69 @@ class Famille
     }
 
     /**
-     * @param Femme $femme
-     * @param Homme $homme
+     * @param Homme|Femme $H1
+     * @param Homme|Femme $H2
      * @return $this
      */
-    public function addMariage(Femme $femme, Homme $homme)
+    public function addMariage($H1, $H2)
     {
-        $this->addMembre($femme);
-        $femme->addRole(new Epouse($homme));
-        $this->addMembre($homme);
-        $homme->addRole(new Epoux($femme));
+        if ($H1 instanceof Femme ){
+            if($H2 instanceof Femme ){
+                $value1 = new Epouse($H2,null);
+                $value2 = new Epouse($H1,null);
+            }
+        }
+        if ($H1 instanceof Homme ){
+            if($H2 instanceof Femme ){
+                $value1 = new Epoux($H2,null);
+                $value2 = new Epouse($H1,null);
+            }
+        }
+
+        if ($H1 instanceof Femme ){
+            if($H2 instanceof Homme ){
+                $value1 = new Epouse($H2,null);
+                $value2 = new Epoux($H1,null);
+            }
+        }
+
+        if ($H1 instanceof Homme ){
+            if($H2 instanceof Homme ){
+                $value1 = new Epoux(null,$H2);
+                $value2 = new Epoux(null,$H1);
+            }
+        }
+
+        if(isset($value2,$value1)){
+            $this->addMembre($H1);
+            $H1->addRole($value1);
+            $this->addMembre($H2);
+
+            $H2->addRole($value2);
+        }
+
         return $this;
     }
 
     /**
-     * @param Femme $mere
-     * @param Homme $pere
+     * @param Femme|Homme $H1
+     * @param Femme|Homme $H2
      * @param MembreInterface $enfant
      * @return $this
-     * @throws EnfantHorsMariageException
+     * @throws DeuxHommesPasDenfantsException
      */
-    public function addNaissance(Femme $mere, Homme $pere, MembreInterface $enfant)
+    public function addNaissance($H1, $H2, MembreInterface $enfant)
     {
-        if (!$mere->hasRole(Epouse::class) || !$pere->hasRole(Epoux::class)) {
-            throw new EnfantHorsMariageException('Les parents doivent être mariés pour pouvoir avoir un enfant !');
+        if ( ($H1 instanceof Homme) && ($H2 instanceof Homme)) {
+            throw new DeuxHommesPasDenfantsException('Un couple d\'hommes ne peuvent pas avoir d\'enfants !');
         }
-        $this->addMembre($enfant);
-        $mere->addRole(new Mere($enfant));
-        $pere->addRole(new Pere($enfant));
-        $enfant->addRole(new Enfant($mere, $pere));
+        $this
+            ->addMembre($H1)
+            ->addMembre($H2)
+            ->addMembre($enfant);
+        $H1->addRole(new Mere($enfant));
+        $H2->addRole(($H2 instanceof Femme) ? new Mere($enfant) : new Pere($enfant));
+        $enfant->addRole(new Enfant($H1, $H2));
         return $this;
     }
 
@@ -131,7 +167,7 @@ class Famille
             'nbEnfants' => $this->getEnfants()->count(),
         ];
     }
-
+    
     /**
      * @param $className
      * @return MembreCollection
