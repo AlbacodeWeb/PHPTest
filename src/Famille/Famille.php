@@ -167,20 +167,7 @@ class Famille
             'nbEnfants' => $this->getEnfants()->count(),
         ];
     }
-    /**
-     * @return array
-     */
-    public function getStatsMix()
-    {
-        return [
-            'nbMembres' => $this->getMembres()->count(),
-            'nbMeres' => $this->getMeres()->count(),
-            'nbPeres' => $this->getPeres()->count(),
-            'nbEpouses' => $this->getEpouses()->count(),
-            'nbEnfants' => $this->getEnfants()->count(),
-        ];
-    }
-
+    
     /**
      * @param $className
      * @return MembreCollection
