@@ -13,86 +13,113 @@ class FamilleTest extends TestCase
 
     public function addMariageDataProvider()
     {
-        return [[
-            new Femme('Epouse'),
-            new Homme('Epoux'),
-            2
-        ]];
+        return [
+            [
+                new Femme('Epouse'),
+                new Homme('Epoux'),
+                2
+            ],
+            [
+                new Femme('Epouse 1'),
+                new Femme('Epouse 2'),
+                2
+            ],
+            [
+                new Homme('Epoux 1'),
+                new Homme('Epoux 2'),
+                2
+            ],
+
+        ];
     }
 
     /**
      * @dataProvider addMariageDataProvider
-     * @param Femme $epouse
-     * @param Homme $epoux
+     * @param MembreInterface $membre1
+     * @param MembreInterface $membre2
      * @param $expectedMembreCount
      */
     public function testAddMariage(
-        Femme $epouse,
-        Homme $epoux,
+        MembreInterface $membre1,
+        MembreInterface $membre2,
         $expectedMembreCount
     ) {
         $famille = (new Famille())
-            ->addMembre($epouse)
-            ->addMariage($epouse, $epoux)
+            ->addMembre($membre1)
+            ->addMariage($membre1, $membre2)
         ;
         $this->assertEquals($expectedMembreCount, $famille->getMembres()->count());
-        $this->assertEquals($epouse->getNom(), $famille->getEpouses()->first()->getNom());
-        $this->assertEquals($epoux->getNom(), $famille->getEpoux()->first()->getNom());
+        $this->assertEquals($expectedMembreCount, $famille->getConjoints()->count());
+        $this->assertEquals($membre1->getNom(), $famille->getConjoints()->first()->getNom());
+        $this->assertEquals($membre2->getNom(), $famille->getConjoints()->next()->getNom());
     }
 
     public function addNaissanceDataProvider()
     {
-        return [[
-            new Femme('Mère'),
-            new Homme('Père'),
-            new Homme('Enfant'),
-            3
-        ]];
+        return [
+            [
+                new Femme('Mère'),
+                new Homme('Père'),
+                new Homme('Enfant'),
+                3
+            ],
+            [
+                new Femme('Mère'),
+                new Femme('Mère Adoptive'),
+                new Femme('Enfant'),
+                3
+            ],
+        ];
     }
 
     /**
      * @dataProvider addNaissanceDataProvider
      * @param Femme $mere
-     * @param Homme $pere
+     * @param MembreInterface $conjoint
      * @param MembreInterface $enfant
      * @param $expectedMembreCount
-     * @throws \Albacode\Famille\Exception\EnfantHorsMariageException
      */
     public function testAddNaissance(
         Femme $mere,
-        Homme $pere,
+        MembreInterface $conjoint,
         MembreInterface $enfant,
         $expectedMembreCount
     ) {
 
         $famille = (new Famille())
             ->addMembre($mere)
-            ->addMariage($mere, $pere)
-            ->addNaissance($mere, $pere, $enfant);
+            ->addMariage($mere, $conjoint)
+            ->addNaissance($mere, $conjoint, $enfant);
 
         $this->assertEquals($expectedMembreCount, $famille->getMembres()->count());
-        $this->assertEquals($mere->getNom(), $famille->getMeres()->first()->getNom());
-        $this->assertEquals($pere->getNom(), $famille->getPeres()->first()->getNom());
+        $this->assertEquals($mere->getNom(), $famille->getParents()->first()->getNom());
+        $this->assertEquals($conjoint->getNom(), $famille->getParents()->next()->getNom());
         $this->assertEquals($enfant->getNom(), $famille->getEnfants()->first()->getNom());
     }
 
     /**
-     * @expectedException \Albacode\Famille\Exception\EnfantHorsMariageException
+     * @dataProvider addNaissanceDataProvider
+     * @param Femme $mere
+     * @param MembreInterface $conjoint
+     * @param MembreInterface $enfant
+     * @param $expectedMembreCount
      */
-    public function testAddNaissanceHorsMariageThrowsException()
-    {
+    public function testAddNaissanceHorsMariage(
+        Femme $mere,
+        MembreInterface $conjoint,
+        MembreInterface $enfant,
+        $expectedMembreCount
+    ) {
 
-        $famille = new Famille();
+        $famille = (new Famille())
+            ->addMembre($mere)
+            ->addMembre($conjoint)
+            ->addNaissance($mere, $conjoint, $enfant);
 
-        $pere = new Homme('Père A');
-        $mere = new Femme('Mère A');
-
-        $famille->addMembre($pere)
-            ->addMembre($mere);
-
-        $enfant = new Homme('Enfant A');
-
-        $famille->addNaissance($mere, $pere, $enfant);
+        $this->assertEquals($expectedMembreCount, $famille->getMembres()->count());
+        $this->assertEquals($mere->getNom(), $famille->getParents()->first()->getNom());
+        $this->assertEquals($conjoint->getNom(), $famille->getParents()->next()->getNom());
+        $this->assertEquals($enfant->getNom(), $famille->getEnfants()->first()->getNom());
     }
 
     public function getStatsDataProvider()

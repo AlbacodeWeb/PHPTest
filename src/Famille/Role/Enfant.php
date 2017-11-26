@@ -3,24 +3,30 @@
 namespace Albacode\Famille\Role;
 
 use Albacode\Famille\Membre\Femme;
-use Albacode\Famille\Membre\Homme;
+use Albacode\Famille\Membre\MembreCollection;
+use Albacode\Famille\Membre\MembreInterface;
 
 class Enfant implements RoleInterface
 {
 
     /**
-     * @var Femme
+     * @var MembreCollection
      */
-    protected $mere;
+    protected $parents;
+
+    public function __construct(Femme $mere, MembreInterface $parent)
+    {
+        $this->parents = ( new MembreCollection() )
+            ->addMembre($mere)
+            ->addMembre($parent);
+    }
 
     /**
-     * @var Homme
+     * @return $this|MembreCollection
      */
-    protected $pere;
 
-    public function __construct(Femme $mere, Homme $pere)
+    public function getParents()
     {
-        $this->mere = $mere;
-        $this->pere = $pere;
+        return $this->parents;
     }
 }

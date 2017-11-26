@@ -2,8 +2,7 @@
 
 namespace Albacode\Famille;
 
-
-use Albacode\Famille\Exception\EnfantHorsMariageException;
+use Albacode\Famille\Membre\AbstractMembre;
 use Albacode\Famille\Membre\Femme;
 use Albacode\Famille\Membre\Homme;
 use Albacode\Famille\Membre\MembreCollection;
@@ -37,16 +36,16 @@ class Famille
     }
 
     /**
-     * @param Femme $femme
-     * @param Homme $homme
+     * @param AbstractMembre $membre1
+     * @param AbstractMembre $membre2
      * @return $this
      */
-    public function addMariage(Femme $femme, Homme $homme)
+    public function addMariage(MembreInterface $membre1, MembreInterface $membre2)
     {
-        $this->addMembre($femme);
-        $femme->addRole(new Epouse($homme));
-        $this->addMembre($homme);
-        $homme->addRole(new Epoux($femme));
+        $this->addMembre($membre1);
+        $membre1->marryTo($membre2);
+        $this->addMembre($membre2);
+        $membre2->marryTo($membre1);
         return $this;
     }
 
@@ -55,17 +54,16 @@ class Famille
      * @param Homme $pere
      * @param MembreInterface $enfant
      * @return $this
-     * @throws EnfantHorsMariageException
      */
-    public function addNaissance(Femme $mere, Homme $pere, MembreInterface $enfant)
+    public function addNaissance(Femme $mere, MembreInterface $parent, MembreInterface $enfant)
     {
-        if (!$mere->hasRole(Epouse::class) || !$pere->hasRole(Epoux::class)) {
-            throw new EnfantHorsMariageException('Les parents doivent être mariés pour pouvoir avoir un enfant !');
-        }
         $this->addMembre($enfant);
         $mere->addRole(new Mere($enfant));
-        $pere->addRole(new Pere($enfant));
-        $enfant->addRole(new Enfant($mere, $pere));
+        if($parent instanceof Homme)
+            $parent->addRole(new Pere($enfant));
+        else
+            $parent->addRole(new Mere($enfant));
+        $enfant->addRole(new Enfant($mere, $parent));
         return $this;
     }
 
@@ -96,6 +94,14 @@ class Famille
     /**
      * @return MembreCollection
      */
+    public function getParents()
+    {
+        return $this->getMembresByRolesClass(array(Mere::class, Pere::class));
+    }
+
+    /**
+     * @return MembreCollection
+     */
     public function getEpouses()
     {
         return $this->getMembresByRoleClass(Epouse::class);
@@ -115,6 +121,14 @@ class Famille
     public function getEnfants()
     {
         return $this->getMembresByRoleClass(Enfant::class);
+    }
+
+    /**
+     * @return MembreCollection
+     */
+    public function getConjoints()
+    {
+        return $this->getMembresByRolesClass(array(Epouse::class, Epoux::class));
     }
 
     /**
@@ -140,6 +154,18 @@ class Famille
     {
         return $this->membres->filter(function(MembreInterface $membre) use ($className) {
             return $membre->hasRole($className);
+        });
+    }
+
+    protected function getMembresByRolesClass(array $classNames)
+    {
+        return $this->membres->filter(function(MembreInterface $membre) use ($classNames) {
+
+            foreach ($classNames as $className)
+                if ( $membre->hasRole($className) )
+                    return true;
+
+            return false;
         });
     }
 }
