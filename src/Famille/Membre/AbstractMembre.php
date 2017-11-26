@@ -2,6 +2,8 @@
 
 namespace Albacode\Famille\Membre;
 
+use Albacode\Famille\Role\Epouse;
+use Albacode\Famille\Role\Epoux;
 use Albacode\Famille\Role\RoleCollection;
 use Albacode\Famille\Role\RoleInterface;
 
@@ -80,5 +82,17 @@ abstract class AbstractMembre implements MembreInterface
                 return $hasRole || (get_class($role) == $roleClass);
             }
         );
+    }
+
+    /*
+     * @param AbstractMembre $conjoint
+     * @return $this
+     */
+    public function marryTo(MembreInterface $conjoint){
+        if($this instanceof Femme){
+            $this->addRole(new Epouse($conjoint));
+        }elseif($this instanceof Homme){
+            $this->addRole(new Epoux($conjoint));
+        }
     }
 }
